@@ -1,43 +1,55 @@
-document.getElementById('imageInput').addEventListener('change', handleImageUpload);
-        document.getElementById('clearStorage').addEventListener('click', clearStorage);
+document.addEventListener("DOMContentLoaded", function () {
+    const imageInput = document.getElementById("imageInput");
+    const previewContainer = document.getElementById("previewContainer");
+    const clearStorage = document.getElementById("clearStorage");
 
-        function handleImageUpload(event) {
-            const files = event.target.files;
-            const previewContainer = document.getElementById('previewContainer');
+    // Retrieve saved images from localStorage and display them
+    if (localStorage.getItem("savedImages")) {
+        const savedImages = JSON.parse(localStorage.getItem("savedImages"));
+        savedImages.forEach(imageData => {
+            displayImage(imageData);
+        });
+    }
 
-            // Clear previous previews
-            previewContainer.innerHTML = '';
+    // Handle image upload
+    imageInput.addEventListener("change", function (event) {
+        const files = event.target.files;
+
+        if (files) {
+            const savedImages = JSON.parse(localStorage.getItem("savedImages")) || [];
 
             Array.from(files).forEach(file => {
                 const reader = new FileReader();
 
-                reader.onload = function(e) {
-                    const imgElement = document.createElement('img');
-                    imgElement.src = e.target.result;
+                reader.onload = function (e) {
+                    const imageData = e.target.result;
+                    savedImages.push(imageData); // Add new image to saved images array
 
-                    // Create a mosaic item div for each image
-                    const mosaicItem = document.createElement('div');
-                    mosaicItem.classList.add('mosaic-item');
+                    // Store all images back to localStorage
+                    localStorage.setItem("savedImages", JSON.stringify(savedImages));
 
-                    // Randomly add a class for larger images to create the mosaic effect
-                    const randomClass = getRandomMosaicClass();
-                    mosaicItem.classList.add(randomClass);
-
-                    mosaicItem.appendChild(imgElement);
-                    previewContainer.appendChild(mosaicItem);
-                }
+                    // Display the new image
+                    displayImage(imageData);
+                };
 
                 reader.readAsDataURL(file);
             });
         }
+    });
 
-        function getRandomMosaicClass() {
-            // Return a random class for mosaic size (normal, large, extra-large)
-            const classes = ['large', 'extra-large', ''];
-            return classes[Math.floor(Math.random() * classes.length)];
-        }
+    // Function to display image in the preview container
+    function displayImage(imageData) {
+        const imgElement = document.createElement('img');
+        imgElement.src = imageData;
+        imgElement.style.maxWidth = "200px";  // Adjust the size as needed
+        imgElement.style.margin = "10px";
+        imgElement.style.borderRadius = "8px";
+        previewContainer.appendChild(imgElement);
+    }
 
-        function clearStorage() {
-            document.getElementById('previewContainer').innerHTML = '';
-            document.getElementById('imageInput').value = '';
-        }
+    // Handle clear storage
+    clearStorage.addEventListener("click", function () {
+        localStorage.removeItem("savedImages");
+        previewContainer.innerHTML = '';  // Clear all images from the preview
+    });
+});
