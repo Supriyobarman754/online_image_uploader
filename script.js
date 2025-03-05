@@ -1,34 +1,43 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const imageInput = document.getElementById("imageInput");
-    const previewImage = document.getElementById("previewImage");
-    const clearStorage = document.getElementById("clearStorage");
+document.getElementById('imageInput').addEventListener('change', handleImageUpload);
+        document.getElementById('clearStorage').addEventListener('click', clearStorage);
 
-    if (localStorage.getItem("savedImage")) {
-        previewImage.src = localStorage.getItem("savedImage");
-        previewImage.style.display = "block";
-    }
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            const previewContainer = document.getElementById('previewContainer');
 
-    imageInput.addEventListener("change", function (event) {
-        const file = event.target.files[0];
+            // Clear previous previews
+            previewContainer.innerHTML = '';
 
-        if (file) {
-            const reader = new FileReader();
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
 
-            reader.onload = function (e) {
-                const imageData = e.target.result;
-                previewImage.src = imageData;
-                previewImage.style.display = "block";
+                reader.onload = function(e) {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = e.target.result;
 
-                localStorage.setItem("savedImage", imageData);
-            };
+                    // Create a mosaic item div for each image
+                    const mosaicItem = document.createElement('div');
+                    mosaicItem.classList.add('mosaic-item');
 
-            reader.readAsDataURL(file);
+                    // Randomly add a class for larger images to create the mosaic effect
+                    const randomClass = getRandomMosaicClass();
+                    mosaicItem.classList.add(randomClass);
+
+                    mosaicItem.appendChild(imgElement);
+                    previewContainer.appendChild(mosaicItem);
+                }
+
+                reader.readAsDataURL(file);
+            });
         }
-    });
 
-    clearStorage.addEventListener("click", function () {
-        localStorage.removeItem("savedImage");
-        previewImage.src = "";
-        previewImage.style.display = "none";
-    });
-});
+        function getRandomMosaicClass() {
+            // Return a random class for mosaic size (normal, large, extra-large)
+            const classes = ['large', 'extra-large', ''];
+            return classes[Math.floor(Math.random() * classes.length)];
+        }
+
+        function clearStorage() {
+            document.getElementById('previewContainer').innerHTML = '';
+            document.getElementById('imageInput').value = '';
+        }
